@@ -14,4 +14,12 @@ Danach kann der Branch gelöscht werden. Nutze dazu gh und referenziere den Bran
 
 Antwort: [https://grok.com/share/bGVnYWN5_7c9cc8e6-365d-492a-a356-9aa529318e30](https://grok.com/share/bGVnYWN5_a22c02f4-c3a2-46ad-a521-ca886b796ccf)
 
+## Lokal synchronisieren
 
+Schreibe ein bash-Skript, welches bei Aufruf folgendes tut. Fehlermeldungen, Kommentare usw. auf Englisch bitte.
+Rufe "https://api.github.com/repos/kweinert/lsx_trades/releases" ab. Es handelt sich um Releases von Github im JSON-Format. Speichere die Datei als releases.json ab.
+Finde heraus, welche csv.gz veröffentlicht wurden und unter welcher URL sie abrufbar sind. Speichere diese  als Umgebungsvariablen ab.
+Prüfe, für welche .csv.gz es ein Release gibt, das nicht im Unterordner $LSX vorliegt.
+Lade diese herunter und speichere sie in dem Unterordner $LSX.
+
+Antwort: https://grok.com/share/bGVnYWN5_12b31830-5bc1-41ed-b090-2dd4356ca8cc
