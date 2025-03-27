@@ -12,6 +12,6 @@ Kannst du dann einen Prüfschritt einbauen, ob die heruntergeladene und gezippte
 Dieser Branch soll dann zu einem Release verpackt und veröffentlicht werden. Dafür braucht der Workflow Schreibrechte, stelle das sicher. Benutze gh statt actions/create-release@v1 bzw. actions/upload-release-asset@v1.
 Danach kann der Branch gelöscht werden. Nutze dazu gh und referenziere den Branch explizit.
 
-Antwort: https://grok.com/share/bGVnYWN5_7c9cc8e6-365d-492a-a356-9aa529318e30
+Antwort: [https://grok.com/share/bGVnYWN5_7c9cc8e6-365d-492a-a356-9aa529318e30](https://grok.com/share/bGVnYWN5_a22c02f4-c3a2-46ad-a521-ca886b796ccf)
 
 
