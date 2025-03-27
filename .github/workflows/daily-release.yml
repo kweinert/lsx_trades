@@ -32,6 +32,19 @@ jobs:
           YESTERDAY=$(date -d 'yesterday' +%Y-%m-%d)
           curl -s "https://www.ls-x.de/_rpc/json/.lstc/instrument/list/lsxtradesyesterday" | gzip > "lsx_trades_${YESTERDAY}.csv.gz"
 
+      - name: Check file size
+        run: |
+          YESTERDAY=$(date -d 'yesterday' +%Y-%m-%d)
+          FILE_SIZE=$(stat -c%s "lsx_trades_${YESTERDAY}.csv.gz")
+          MIN_SIZE=$((1 * 1024 * 1024))  # 1 MB in Bytes
+          echo "File size: $FILE_SIZE bytes"
+          if [ $FILE_SIZE -lt $MIN_SIZE ]; then
+            echo "Error: File size is less than 1 MB ($FILE_SIZE bytes)"
+            exit 1
+          else
+            echo "File size check passed: $FILE_SIZE bytes"
+          fi
+
       - name: Commit and push changes
         run: |
           YESTERDAY=$(date -d 'yesterday' +%Y-%m-%d)
