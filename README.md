@@ -1,6 +1,6 @@
 # lsx_trades
 
-Tägliche Handelsdaten der LSX.
+Tägliche Handelsdaten der LSX. Größtenteils mithilfe von KI (grok) entstanden.
 
 ## Interpretation der Spalten
 
@@ -97,3 +97,29 @@ Prüfe, für welche .csv.gz es ein Release gibt, das nicht im Unterordner $LSX v
 Lade diese herunter und speichere sie in dem Unterordner $LSX.
 
 Antwort: https://grok.com/share/bGVnYWN5_12b31830-5bc1-41ed-b090-2dd4356ca8cc
+
+Daraus entstandener Code: https://github.com/kweinert/buffett-build/blob/main/run_lsx.sh
+
+## In ein dbt-Projekt importieren
+
+Ich möchte eine Datenbank-Tabelle namens stg_trades erstellen, die Daten aus komprimierten CSV-Dateien (.csv.gz) einliest. Ich benutze eine Datenbank namens DuckDB. Die Dateien liegen im Ordner /app/data/lsx_trades/ und haben Namen wie lsx_trades_2025-03-27.csv.gz, wobei das Datum im Format YYYY-MM-DD ist. Jede Datei enthält Daten mit den Spalten isin, tradeTime, price, currency, size und einigen anderen, die ich nicht brauche (z. B. quotation, TVTIC, mic, flags, publishedTime). In der Tabelle sollen nur isin, tradeTime (umbenannt zu trade_time), price, currency und size gespeichert werden.
+
+Die CSV-Dateien verwenden ein Semikolon (;) als Trennzeichen, ein Komma (,) als Dezimalpunkt, haben eine Kopfzeile, und das Datum in tradeTime hat das Format YYYY-MM-DDTHH:MM:SS.ffffffZ (z. B. 2025-03-27T14:30:00.123456Z).
+
+Ich möchte, dass die Tabelle so arbeitet:
+
+    Beim ersten Durchlauf sollen alle verfügbaren Dateien eingelesen werden.
+    Bei späteren Durchläufen sollen nur Dateien eingelesen werden, deren Datum im Dateinamen neuer ist als das neueste trade_time-Datum in der Tabelle. Wenn keine neuen Dateien da sind, soll nichts passieren und die Tabelle unverändert bleiben.
+    Es soll eine eindeutige Kennung für jede Zeile geben, basierend auf isin, trade_time, price, currency und size zusammen, damit keine doppelten Einträge entstehen.
+
+Füge außerdem einfache Nachrichten ein, die mir zeigen:
+
+    Was das neueste Datum (max_date) in der Tabelle ist.
+    Wie viele Dateien im Ordner gefunden wurden.
+    Welche Dateien tatsächlich eingelesen werden.
+
+Ich benutze ein Werkzeug namens dbt, aber ich kenne mich damit nicht so gut aus. Bitte erstelle den Code so, dass er einfach zu verstehen ist und in einer Datei namens stg_trades.sql funktioniert. Verwende so wenig komplizierte dbt-spezifische Dinge wie möglich, aber stelle sicher, dass es mit DuckDB funktioniert.
+
+Antwort: https://grok.com/share/bGVnYWN5_6704f5d8-4c5b-4579-8910-cf59822a37c8
+
+Daraus entstandener Code: https://github.com/kweinert/buffett-build/blob/main/models/staging/stg_trades.sql
