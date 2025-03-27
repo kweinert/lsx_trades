@@ -1,0 +1,53 @@
+name: Daily LSX Trades Import
+
+on:
+  schedule:
+    - cron: '0 1 * * *'  # Läuft jeden Tag um 01:00 UTC
+  workflow_dispatch:  # Ermöglicht manuelles Auslösen
+
+jobs:
+  import-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Git Config
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          
+      - name: Create New Branch
+        run: |
+          DATE=$(date -d "yesterday" +%Y-%m-%d)
+          BRANCH_NAME="lsx-trades-$DATE"
+          git checkout -b $BRANCH_NAME
+          
+      - name: Download and Save Trades Data
+        run: |
+          DATE=$(date -d "yesterday" +%Y-%m-%d)
+          curl -s "https://www.ls-x.de/_rpc/json/.lstc/instrument/list/lsxtradesyesterday" | gzip > "lsx_trades_$DATE.csv.gz"
+          
+      - name: Commit and Push
+        run: |
+          DATE=$(date -d "yesterday" +%Y-%m-%d)
+          git add "lsx_trades_$DATE.csv.gz"
+          git commit -m "Add LSX trades data for $DATE"
+          git push origin "lsx-trades-$DATE"
+          
+      - name: Create Release
+        run: |
+          DATE=$(date -d "yesterday" +%Y-%m-%d)
+          gh release create "lsx-trades-$DATE" \
+            --title "LSX Trades $DATE" \
+            --notes "Automated release of LSX trades data for $DATE" \
+            "lsx_trades_$DATE.csv.gz"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Delete Branch
+        run: |
+          DATE=$(date -d "yesterday" +%Y-%m-%d)
+          git checkout main
+          git push origin --delete "lsx-trades-$DATE"
