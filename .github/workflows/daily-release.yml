@@ -1,53 +1,75 @@
-name: Daily LSX Trades Import
+name: Fetch LSX Trades and Create Release
 
+# Trigger für tägliche Ausführung um 1:00 UTC und manuelle Auslösung
 on:
   schedule:
-    - cron: '0 1 * * *'  # Läuft jeden Tag um 01:00 UTC
-  workflow_dispatch:  # Ermöglicht manuelles Auslösen
+    - cron: '0 1 * * *'  # Jeden Tag um 1:00 UTC
+  workflow_dispatch:     # Ermöglicht manuelle Ausführung
+
+# Berechtigungen für den Workflow
+permissions:
+  contents: write      # Schreibrechte für Repository-Inhalte
+  packages: write      # Für Releases
 
 jobs:
-  import-and-release:
+  fetch-and-release:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout Repository
+      # Repository auschecken
+      - name: Checkout repository
         uses: actions/checkout@v4
-        
-      - name: Setup Git Config
+      
+      # Datum des Vortags ermitteln und Branch-Namen erstellen
+      - name: Set up variables
+        id: vars
         run: |
-          git config user.name "GitHub Actions Bot"
-          git config user.email "<>"
-          
-      - name: Create New Branch
+          yesterday=$(date -d "yesterday" +%Y-%m-%d)
+          echo "yesterday=$yesterday" >> $GITHUB_OUTPUT
+          echo "branch=lsx-trades-$yesterday" >> $GITHUB_OUTPUT
+          echo "filename=lsx_trades_$yesterday.csv.gz" >> $GITHUB_OUTPUT
+      
+      # Neuen Branch erstellen
+      - name: Create new branch
         run: |
-          DATE=$(date -d "yesterday" +%Y-%m-%d)
-          BRANCH_NAME="lsx-trades-$DATE"
-          git checkout -b $BRANCH_NAME
-          
-      - name: Download and Save Trades Data
+          git checkout -b ${{ steps.vars.outputs.branch }}
+      
+      # Daten abrufen und als .csv.gz speichern
+      - name: Fetch LSX trades data
         run: |
-          DATE=$(date -d "yesterday" +%Y-%m-%d)
-          curl -s "https://www.ls-x.de/_rpc/json/.lstc/instrument/list/lsxtradesyesterday" | gzip > "lsx_trades_$DATE.csv.gz"
-          
-      - name: Commit and Push
+          curl -s "https://www.ls-x.de/_rpc/json/.lstc/instrument/list/lsxtradesyesterday" | gzip > ${{ steps.vars.outputs.filename }}
+      
+      # Datei committen und pushen
+      - name: Commit and push changes
         run: |
-          DATE=$(date -d "yesterday" +%Y-%m-%d)
-          git add "lsx_trades_$DATE.csv.gz"
-          git commit -m "Add LSX trades data for $DATE"
-          git push origin "lsx-trades-$DATE"
-          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ${{ steps.vars.outputs.filename }}
+          git commit -m "Add LSX trades for ${{ steps.vars.outputs.yesterday }}"
+          git push origin ${{ steps.vars.outputs.branch }}
+      
+      # Release erstellen mit gh
       - name: Create Release
-        run: |
-          DATE=$(date -d "yesterday" +%Y-%m-%d)
-          gh release create "lsx-trades-$DATE" \
-            --title "LSX Trades $DATE" \
-            --notes "Automated release of LSX trades data for $DATE" \
-            "lsx_trades_$DATE.csv.gz"
+        id: create_release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
-      - name: Delete Branch
         run: |
-          DATE=$(date -d "yesterday" +%Y-%m-%d)
+          gh release create "lsx-trades-${{ steps.vars.outputs.yesterday }}" \
+            --title "LSX Trades ${{ steps.vars.outputs.yesterday }}" \
+            --notes "Automated release of LSX trades for ${{ steps.vars.outputs.yesterday }}" \
+            --target ${{ steps.vars.outputs.branch }}
+      
+      # Datei zum Release hochladen
+      - name: Upload Release Asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "lsx-trades-${{ steps.vars.outputs.yesterday }}" ${{ steps.vars.outputs.filename }}
+      
+      # Branch löschen
+      - name: Delete branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
           git checkout main
-          git push origin --delete "lsx-trades-$DATE"
+          git push origin --delete ${{ steps.vars.outputs.branch }}
