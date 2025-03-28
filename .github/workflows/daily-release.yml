@@ -2,7 +2,7 @@ name: Fetch LSX Trades and Create Release
 
 on:
   schedule:
-    - cron: '0 1 * * *'  # Läuft täglich um 1:00 UTC
+    - cron: '0 1 * * 2-6'  # Läuft Dienstag bis Samstag um 1:00 UTC
   workflow_dispatch:     # Ermöglicht manuelle Ausführung
 
 permissions:
