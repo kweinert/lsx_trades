@@ -39,7 +39,7 @@ jobs:
           MIN_SIZE=$((0.5 * 1024 * 1024))  # 0,5 MB in Bytes
           echo "File size: $FILE_SIZE bytes"
           if [ $FILE_SIZE -lt $MIN_SIZE ]; then
-            echo "Error: File size is less than 1 MB ($FILE_SIZE bytes)"
+            echo "Error: File size is less than 0.5 MB ($FILE_SIZE bytes)"
             exit 1
           else
             echo "File size check passed: $FILE_SIZE bytes"
